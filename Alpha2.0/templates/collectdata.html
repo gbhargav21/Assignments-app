@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 id="welcome-message" class="text-center">Welcome, !</h2>
+            <button id="logout-button">Logout</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table id="assignments-table" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Assignment ID</th>
+                        <th>Assignment Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Freelancer Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <form id="assignment-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="assignment-name">Assignment Name:</label>
+                    <input type="text" id="assignment-name" name="assignment-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="assignment-file">Assignment File:</label>
+                    <input type="file" id="assignment-file" name="assignment-file" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="assignment-last-date">Last Date:</label>
+                    <input type="date" id="assignment-last-date" name="assignment-last-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="assignment-price">Price:</label>
+                    <input type="text" id="assignment-price" name="assignment-price" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="assignment-description">Description:</label>
+                    <textarea id="assignment-description" name="assignment-description" class="form-control" required></textarea>
+                </div>
+                <div class="text-center">
+                    <input type="button" class="btn btn-primary" value="Upload Assignment" onclick="uploadAssignment()">
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div id="upload-message"></div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+   function uploadAssignment() {
+    // Create a new FormData object to store the data from the form
+    var formData = new FormData();
+
+    // Append the data from the form to the FormData object
+    formData.append("assignment_name", $("#assignment-name").val());
+    formData.append("description", $("#assignment-description").val());
+    formData.append("file", $("#assignment-file")[0].files[0]);
+    formData.append("last_date", $("#assignment-last-date").val());
+    formData.append("price", $("#assignment-price").val());
+
+    // Make a POST request to the /post_assignment endpoint using the FormData object as the data
+    $.ajax({
+        type: 'POST',
+        url: '/post_assignment',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            if (response.status == 200) {
+                // Display a success message and reset the form
+                $("#upload-message").text("Assignment uploaded successfully!");
+                setTimeout(function() {
+                    $("#upload-message").text("");
+                }, 2000);
+                $("#assignment-form")[0].reset();
+
+                // Refresh the assignments table by
+                $.ajax({
+                    type: 'GET',
+                    url: '/user-dashboard-data',
+                    contentType: "application/json",
+                    success: function(response) {
+                        // Clear the existing table
+                        $("#assignments-table").empty();
+                        var assignments = response.assignments;
+                        if(assignments.length == 0){
+                            // If there are no assignments, display a message
+                            $("#assignments-table").append("<tr><td colspan='5'>You have not posted any assignments yet. <a href='/post_assignment'>Post Assignment</a></td></tr>");
+                        } else {
+                            // If there are assignments, add the table headers and rows for each assignment
+                            $("#assignments-table").append("<tr><th>Assignment ID</th><th>Assignment Name</th><th>Description</th><th>Price</th><th>Freelancer Status</th></tr>");
+                            for(var i=0; i<assignments.length; i++) {
+                                var assignment = assignments[i];
+                                var row = "<tr>" +
+                                "<td>" + assignment.assignment_id + "</td>" +
+                                "<td>" + assignment.name + "</td>" +
+                                "<td>" + assignment.description + "</td>" +
+                                "<td>" + assignment.price + "</td>" +
+                                "<td>" + (assignment.status ? assignment.status : "Awaiting Status") + "</td>" +
+                                "</tr>";
+                                $("#assignments-table").append(row);
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+}
+
+</script>
+ <script>
+       $(document).ready(function(){
+    $.ajax({
+        type: 'GET',
+        url: '/user-dashboard-data',
+        contentType: "application/json",
+        success: function(response) {
+            var assignments = response.assignments;
+            var name = response.name;
+            console.log(name);
+            $("#welcome-message").text("Welcome, " + name + "!");
+            if(assignments.length == 0){
+                 $("#assignments-table th").hide();
+                $("#assignments-table").append("<tr><td colspan='5'>You have not posted any assignments yet. <a href='/post_assignment'>Post Assignment</a></td></tr>");    }
+            else{
+                for(var i=0; i<assignments.length; i++) {
+                    var assignment = assignments[i];
+                    var row = "<tr>" +
+                        "<td>" + assignment.assignment_id + "</td>" +
+                        "<td>" + assignment.name + "</td>" +
+                        "<td>" + assignment.description + "</td>" +
+                        "<td>" + assignment.price + "</td>" +
+                        "<td>" + (assignment.status ? assignment.status : "Awaiting Status") + "</td>" +
+                        "</tr>";
+                    $("#assignments-table").append(row);
+                }
+            }
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+
+    </script>
+
+<script>
+  document.getElementById("logout-button").addEventListener("click", function() {
+    // Make an AJAX request to the logout endpoint
+    fetch("/logout", {
+      method: "GET",
+    })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error("Failed to log out");
+        }
+        // Redirect the user back to the home page
+        window.location.href = "/";
+      })
+      .catch(function(error) {
+        console.error(error);
+      });
+  });
+</script>
+</html>

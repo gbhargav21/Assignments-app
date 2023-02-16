@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
+
+<style>
+    .table-center {
+  margin: 0 auto;
+}
+#total-count-and-value {
+    text-align: center; /* centers the text inside the div */
+    padding: 20px; /* adds some padding around the text */
+}
+
+#total-count-and-value p {
+    font-size: 1.5em; /* increases the font size of the text */
+    margin-bottom: 10px; /* adds some margin between the two paragraphs */
+}
+.page-footer {
+  background-color: #333;
+  color: #fff;
+  padding: 2rem;
+}
+
+.footer-copyright a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+ body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        text-align: center;
+        margin-top: 1em;
+      }
+      table {
+        width: 80%;
+        margin: 2em auto;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 0.5em;
+        text-align: center;
+      }
+      th {
+        background-color: #eee;
+      }
+      input[type="text"], select {
+        padding: 0.5em;
+        margin: 0.5em;
+        font-size: 1em;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      #searchBtn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 0.5em;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Navbar</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for ('hometostudent')}}">Student</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{url_for('hometofreelancer')}}">Freelancer</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+
+
+
+
+<div id="total-count-and-value">
+    <p>Total Count: <span id="total-count"><i class="fas fa-users"></i></span></p>
+    <p>Total Value: <span id="total-value"><i class="fas fa-dollar-sign"></i></span></p>
+</div>
+<div id="filters">
+      <label for="searchBox">Search by name:</label>
+      <input type="text" id="searchBox">
+      <label for="priceFilter">Filter by price:</label>
+      <select id="priceFilter">
+        <option value=""></option>
+        <option value="lt10">Less than $10</option>
+        <option value="10to50">$10 to $50</option>
+        <option value="gt50">Greater than $50</option>
+      </select>
+      <button id="searchBtn">Search</button>
+    </div>
+<div class="container-fluid">
+<table class="table table-sm table-center">
+  <thead>
+    <tr>
+      <th scope="col">SNO</th>
+      <th scope="col">Assignment Name</th>
+      <th scope="col">Description</th>
+      <th scope="col">Price</th>
+      <th scope="col">Last Date</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody id="assignment-table">
+  </tbody>
+</table>
+<div id="pagination-controls">
+  <button id="load-more-btn">Load More</button>
+  <a href="javascript:history.back()" id="go-back-btn" style="display: none;">Go Back</a>
+</div>
+  </div>
+
+<footer class="page-footer font-small blue">
+  <div class="footer-copyright text-center py-3">
+    © 2023 Copyright: <a href="#"> Bhargav </a>
+  </div>
+</footer>
+
+<script>
+  var page = 1;
+  var perPage = 10; // changed perPage to 2
+  var totalPages;
+
+  function loadData() {
+    // Make an AJAX call to get data from the server
+    $.ajax({
+      type: "GET",
+      url: "/get_data",
+      data: { page: page, per_page: perPage },
+      success: function(data) {
+        // Clear the existing data in the table
+        $("#assignment-table").empty();
+
+        // Loop through the data and append to the table
+        for (var i = 0; i < data.length; i++) {
+            var sno = (page-1)*perPage + i + 1;
+          var row = `<tr>
+            <th scope="row">${sno}</th>
+            <td>${data[i].assignment_name}</td>
+            <td>${data[i].description}</td>
+            <td>${data[i].price}</td>
+            <td>${data[i].last_date}</td>
+            <td><a href="{{ url_for('hometofreelancer') }}">Apply</a></td>
+          </tr>`;
+          $("#assignment-table").append(row);
+        }
+        if(page>1){
+        $("#go-back-btn").show();
+        }else{
+            $("#go-back-btn").hide(); // hide go back button on first page
+        }
+        if(page == totalPages) {
+            $("#load-more-btn").hide();
+        }else{
+            $("#load-more-btn").show(); // show load more button if not on last page
+        }
+      }
+    });
+  }
+
+  // Load data on page load
+  loadData();
+
+  // Bind click event to load more button
+  $("#load-more-btn").on("click", function() {
+    page++;
+    loadData();
+  });
+  $("#go-back-btn").on("click", function() {
+    page--;
+    loadData();
+  });
+</script>
+<script>
+    $(document).ready(function() {
+        // Get the total count and value from the server
+        $.ajax({
+            type: "GET",
+            url: "/get_total_count_and_value",
+            success: function(data) {
+                $("#total-count").text(data.total_count);
+                $("#total-value").text(data.total_value);
+            }
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+</body>
+</html>
+
+

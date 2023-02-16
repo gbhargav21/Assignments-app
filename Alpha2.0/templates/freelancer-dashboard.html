@@ -1,0 +1,166 @@
+<html>
+<head>
+    <title>Freelancer Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+<body>
+    <h1>Welcome, {{ freelancer_name }}</h1>
+    <button id="logout-button">Logout</button>
+    <div id="assignments-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Assignment ID</th>
+                    <th>Description</th>
+                    <th>Name</th>
+                    <th>Last Date</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody id="assignments-data">
+            <td><button class="accept-btn" >Accept</button> <button class="bid-btn" >Bid with Custom Price</button></td>
+
+                <!-- Assignments data will be loaded here using AJAX -->
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <button id="load-more-btn">Load More</button>
+        <button id="load-back-btn" >Load Back</button>
+    </div>
+
+
+<script>
+$(document).ready(function() {
+    var pageNumber = 0;
+    var s_no = 0;
+    loadAssignments();
+    $("#load-back-btn").hide();
+
+    $("#load-more-btn").click(function() {
+        pageNumber++;
+        s_no += 10;
+        $("#load-back-btn").show();
+        loadAssignments();
+    });
+
+    $("#load-back-btn").click(function() {
+        if (pageNumber > 0) {
+            pageNumber--;
+            s_no -= 10;
+            if (pageNumber == 0) {
+                $("#load-back-btn").hide();
+            }
+            loadAssignments();
+        }
+    });
+
+    function loadAssignments() {
+    $.ajax({
+        url: '/load_assignments/' + pageNumber,
+        type: 'GET',
+        success: function(response) {
+            $("#assignments-data").empty();
+            for (var i = 0; i < response.length; i++) {
+                var assignment = response[i];
+                var row = "<tr>" +
+                            "<td>" + (s_no + i + 1) + "</td>" +
+                            "<td>" + assignment.assignment_id + "</td>" +
+                            "<td>" + assignment.description + "</td>" +
+                            "<td>" + assignment.name + "</td>" +
+                            "<td>" + assignment.last_date + "</td>" +
+                            "<td>" + assignment.price + "</td>" +
+                            "<td>" +
+                                "<button class='accept-btn' data-assignment-id='" + assignment.assignment_id + "'>Accept</button>" +
+                                "<button class='bid-btn' data-assignment-id='" + assignment.assignment_id + "'>Bid with Custom Price</button>" +
+                                "<button class='download-btn' data-assignment-id='" + assignment.assignment_id + "'>Download</button>" +
+                            "</td>" +
+                          "</tr>";
+                $("#assignments-data").append(row);
+            }
+        }
+    });
+}
+
+});
+
+
+
+$(document).on('click', '.accept-btn', function() {
+    var assignment_id = $(this).data('assignment-id');
+    acceptAssignment(assignment_id);
+});
+
+$(document).on('click', '.bid-btn', function() {
+    var assignment_id = $(this).data('assignment-id');
+    bidWithCustomPrice(assignment_id);
+});
+
+function acceptAssignment(assignment_id) {
+    $.ajax({
+        url: '/accept_assignment',
+        type: 'POST',
+        data: {
+            'assignment_id': assignment_id
+        },
+        success: function(response) {
+             alert('Assignment accepted successfully!');
+            // Remove the row from the table
+            $('#assignment_' + assignment_id).remove();
+        }
+    });
+}
+
+function bidWithCustomPrice(assignment_id) {
+    var custom_price = prompt("Enter your custom price:");
+    $.ajax({
+        url: '/bid_assignment',
+        type: 'POST',
+        data: {
+            'assignment_id': assignment_id,
+            'custom_price': custom_price
+        },
+        success: function(response) {
+            // Handle success response
+        }
+    });
+}
+$(document).on('click', '.download-btn', function() {
+    var assignment_id = $(this).data('assignment-id');
+    downloadAssignment(assignment_id);
+});
+
+function downloadAssignment(assignment_id) {
+    var link = document.createElement('a');
+    link.href = "/assignment_download/" + assignment_id;
+    link.download = assignment_id;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+</script>
+<script>
+  document.getElementById("logout-button").addEventListener("click", function() {
+    // Make an AJAX request to the logout endpoint
+    fetch("/logout", {
+      method: "GET",
+    })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error("Failed to log out");
+        }
+        // Redirect the user back to the home page
+        window.location.href = "/";
+      })
+      .catch(function(error) {
+        console.error(error);
+      });
+  });
+</script>
+</body>
+</html>

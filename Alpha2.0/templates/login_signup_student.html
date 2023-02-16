@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .container {
+            margin-top: 50px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-control {
+            padding: 10px;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+   <script>
+    $(document).ready(function() {
+        // Show the login form by default and hide the signup form
+        $("#login-form").show();
+        $("#signup-form").hide();
+
+        // Show login form when login button is clicked
+        $("#login-button").click(function() {
+            $("#login-form").show();
+            $("#signup-form").hide();
+        });
+
+        // Show signup form when signup button is clicked
+        $("#signup-button").click(function() {
+            $("#login-form").hide();
+            $("#signup-form").show();
+        });
+
+        // Submit signup form using AJAX
+        $("#signup-form1").submit(function(e) {
+            e.preventDefault();
+
+            // Get form data
+            var formData = {
+                name: $("#name").val(),
+                email: $("#email").val(),
+                phone: $("#phone").val(),
+                password: $("#password").val(),
+                secretcodestudent:$("#secretcode").val()
+            };
+
+            // Make the AJAX request
+            $.ajax({
+                type: "POST",
+                url: "/student_signup",
+                data: formData,
+                success: function(response) {
+                    if (response.status == "success") {
+                        // Reset the form and show success message
+                        $('#signup-form1')[0].reset();
+                        $("#message").text("Account created successfully");
+                        $("#message").show();
+                        // Redirect to home page after 5 seconds
+                        setTimeout(function(){
+                            window.location.href = "/home";
+                        }, 5000);
+                    } else {
+                        // Show error message
+                        $("#message").text(response.message);
+                        $("#message").show();
+                    }
+                }
+            });
+        });
+
+        // Submit login form using AJAX
+      $("#login-form").submit(function(e) {
+    e.preventDefault();
+
+    var email = $("#login-email").val();
+    var password = $("#login-password").val();
+
+    $.ajax({
+        type: "POST",
+        url: "/student_login",
+        data: {
+            email: email,
+            password: password
+        },
+        success: function(response) {
+            if (response.status == "success") {
+                window.location.href = "/user-dashboard";
+            } else {
+                $("#message").text(response.message);
+                $("#message").show();
+            }
+        }
+    });
+});
+
+    });
+</script>
+
+
+
+</head>
+<body>
+      <div class="container">
+        <div class="row">
+            <div class="col-md-6 mx-auto my-5">
+                <div id="message" class="alert alert-danger" style="display:none;"></div>
+                <div id="login-form" class="card">
+    <div class="card-header">
+        Login
+    </div>
+    <div class="card-body">
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" name="password" class="form-control" required>
+            </div>
+            <input type="submit" value="Login" class="btn btn-primary btn-block">
+        </form>
+        <div id="message" class="alert alert-danger" style="display:none;"></div>
+        <p class="text-center mt-3">
+    <a href="/Student_Password_Reset">Forgot Password?</a>
+  </p>
+    </div>
+    <div class="card-footer text-center">
+        <button id="signup-button" class="btn btn-success">Signup</button>
+    </div>
+</div>
+                <div id="signup-form" class="card" style="display:none;">
+  <div class="card-header">
+    Signup
+  </div>
+  <div class="card-body">
+    <form id="signup-form1">
+      <div class="form-group">
+        <label for="sname">Name:</label>
+        <input type="text" id="name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="semail">Email:</label>
+        <input type="email" id="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="sphone">Phone:</label>
+        <input type="text" id="phone" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="spassword">Password:</label>
+        <input type="password" id="password" class="form-control" required>
+      </div>
+         <div class="form-group">
+        <label for="secretcode">SecretCode:</label>
+        <input type="password" id="secretcode" class="form-control" required>
+      </div>
+
+      <input type="submit" value="Signup" class="btn btn-primary btn-block">
+    </form>
+  </div>
+  <div class="card-footer text-center">
+    <button id="login-button" class="btn btn-success">Login</button>
+  </div>
+</div>
+
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+</html>
+
+
+
